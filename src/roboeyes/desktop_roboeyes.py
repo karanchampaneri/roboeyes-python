@@ -28,6 +28,9 @@ from desktop.exceptions import (
 )
 from desktop.logging import get_logger
 
+# Import emotion animation system
+from roboeyes.emotion_animation import EmotionAnimationManager
+
 # Import constants and random from standard library
 from random import randint
 import time
@@ -72,8 +75,8 @@ class DesktopRoboEyes:
     but uses Pygame for graphics rendering and standard Python timing functions.
     """
     
-    def __init__(self, config: Optional[RoboEyesConfig] = None, 
-                 width: int = 128, height: int = 64, frame_rate: int = 20, 
+    def __init__(self, config_or_width: Optional[RoboEyesConfig] = None, 
+                 height: int = 64, frame_rate: int = 20, 
                  window_width: int = 800, window_height: int = 600,
                  bgcolor: int = BGCOLOR, fgcolor: int = FGCOLOR,
                  resizable: bool = True, fullscreen: bool = False):
@@ -81,8 +84,8 @@ class DesktopRoboEyes:
         Initialize the desktop RoboEyes application.
         
         Args:
-            config: Optional RoboEyesConfig instance for configuration
-            width: Width of the eye display area in pixels (overridden by config)
+            config_or_width: Either a RoboEyesConfig instance for configuration,
+                           or an integer width for backward compatibility
             height: Height of the eye display area in pixels (overridden by config)
             frame_rate: Target frame rate for animations (overridden by config)
             window_width: Width of the application window (overridden by config)
@@ -120,8 +123,10 @@ class DesktopRoboEyes:
             logger.error(error_msg)
             raise PygameInitializationError(error_msg)
         
-        # Use configuration if provided, otherwise use parameters
-        if config is not None:
+        # Handle backward compatibility: first parameter can be either config or width
+        if isinstance(config_or_width, RoboEyesConfig):
+            # New style: config object provided
+            config = config_or_width
             self.config = config
             self.display_width = config.display_width
             self.display_height = config.display_height
@@ -130,7 +135,9 @@ class DesktopRoboEyes:
             self.resizable = config.resizable
             self.fullscreen = config.fullscreen
             frame_rate = config.frame_rate
-        else:
+        elif isinstance(config_or_width, int) or config_or_width is None:
+            # Old style: width parameter or None
+            width = config_or_width if config_or_width is not None else 128
             # Create default config for backward compatibility
             self.config = RoboEyesConfig(
                 display_width=width,
@@ -147,6 +154,8 @@ class DesktopRoboEyes:
             self.window_height = window_height
             self.resizable = resizable
             self.fullscreen = fullscreen
+        else:
+            raise TypeError(f"First parameter must be RoboEyesConfig, int, or None, got {type(config_or_width)}")
         
         # Window state tracking
         self.minimized = False
@@ -204,8 +213,8 @@ class DesktopRoboEyes:
         self.on_show = self._pygame_show
         
         # Initialize the core RoboEyes properties (copied from original)
-        self.screenWidth = width
-        self.screenHeight = height
+        self.screenWidth = self.display_width
+        self.screenHeight = self.display_height
         
         self.sequences = Sequences(self)
         
@@ -329,6 +338,16 @@ class DesktopRoboEyes:
             # Initialize input manager
             logger.debug("Initializing input manager...")
             self.input_manager = InputManager(self)
+            
+            # Initialize emotion animation manager
+            logger.debug("Initializing emotion animation manager...")
+            try:
+                self.emotion_manager = EmotionAnimationManager(self)
+                logger.debug("Emotion animation manager initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize emotion animation manager: {e}")
+                logger.warning("Continuing without emotion system - basic animations will still work")
+                self.emotion_manager = None
             
             # Application state
             self.running = True
@@ -717,6 +736,10 @@ class DesktopRoboEyes:
         logger = get_logger()
         
         try:
+            # Update emotion animation transitions
+            if hasattr(self, 'emotion_manager') and self.emotion_manager is not None:
+                self.emotion_manager.update()
+            
             self.sequences.update()
             # Limit drawing updates to defined max framerate
             if ticks_diff(ticks_ms(), self.fpsTimer) >= self.frameInterval:
@@ -977,6 +1000,354 @@ class DesktopRoboEyes:
         self.autoblinker = False
         self.idle = False
         self.blink(left=left, right=right)
+    
+    def trigger_emotion(self, emotion_name: str, confidence: float = 1.0) -> bool:
+        """
+        Trigger an emotion-based animation with comprehensive error handling.
+        
+        This method provides a convenient interface to the emotion animation system.
+        If the emotion system is not available, it will attempt basic fallback animations
+        or log appropriate warnings while ensuring the system continues functioning.
+        
+        Args:
+            emotion_name: The name of the emotion to trigger (e.g., 'happy', 'neutral', 'urgent')
+            confidence: Confidence level of the emotion detection (0.0 to 1.0)
+            
+        Returns:
+            True if the emotion was successfully triggered, False otherwise
+            
+        Example:
+            roboeyes.trigger_emotion('happy')
+            roboeyes.trigger_emotion('concerned', confidence=0.8)
+        """
+        logger = get_logger()
+        
+        try:
+            # Check if emotion manager is available
+            if not hasattr(self, 'emotion_manager') or self.emotion_manager is None:
+                logger.warning("Emotion animation system not available, attempting basic fallback")
+                return self._trigger_basic_emotion_fallback(emotion_name)
+            
+            # Check if emotion manager has initialization errors
+            if hasattr(self.emotion_manager, 'has_initialization_errors') and self.emotion_manager.has_initialization_errors():
+                logger.warning("Emotion animation system has initialization errors, but attempting to continue")
+                errors = self.emotion_manager.get_initialization_errors()
+                for error in errors[:3]:  # Log first 3 errors to avoid spam
+                    logger.debug(f"Emotion system init error: {error}")
+            
+            # Try to trigger emotion through the emotion manager
+            result = self.emotion_manager.trigger_emotion(emotion_name, confidence)
+            
+            if not result:
+                logger.warning(f"Emotion manager failed to trigger '{emotion_name}', trying basic fallback")
+                return self._trigger_basic_emotion_fallback(emotion_name)
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Error triggering emotion '{emotion_name}': {e}")
+            logger.info("Attempting basic emotion fallback")
+            return self._trigger_basic_emotion_fallback(emotion_name)
+    
+    def _trigger_basic_emotion_fallback(self, emotion_name: str) -> bool:
+        """
+        Trigger basic emotion animations when the emotion system is unavailable.
+        
+        Args:
+            emotion_name: The emotion name to approximate with basic animations
+            
+        Returns:
+            True if a basic animation was triggered, False otherwise
+        """
+        logger = get_logger()
+        
+        try:
+            if not isinstance(emotion_name, str):
+                emotion_name = "neutral"
+            
+            emotion_name = emotion_name.lower().strip()
+            logger.debug(f"Attempting basic emotion fallback for '{emotion_name}'")
+            
+            # Map emotions to basic animations
+            if emotion_name == "happy":
+                try:
+                    self.mood = HAPPY
+                    if hasattr(self, 'sequences') and hasattr(self.sequences, 'happy_eyes'):
+                        self.sequences.happy_eyes()
+                        return True
+                    else:
+                        # Basic happy animation
+                        self.eyes_height(30, 30)
+                        return True
+                except Exception as e:
+                    logger.warning(f"Basic happy animation failed: {e}")
+            
+            elif emotion_name == "urgent":
+                try:
+                    self.mood = DEFAULT
+                    # Wide open eyes for urgency
+                    self.eyes_width(40, 40)
+                    self.eyes_height(40, 40)
+                    return True
+                except Exception as e:
+                    logger.warning(f"Basic urgent animation failed: {e}")
+            
+            elif emotion_name == "concerned":
+                try:
+                    self.mood = TIRED
+                    if hasattr(self, 'sequences') and hasattr(self.sequences, 'tired_eyes'):
+                        self.sequences.tired_eyes()
+                        return True
+                    else:
+                        # Basic concerned animation
+                        self.eyes_height(20, 20)
+                        return True
+                except Exception as e:
+                    logger.warning(f"Basic concerned animation failed: {e}")
+            
+            elif emotion_name == "request":
+                try:
+                    self.mood = CURIOUS if hasattr(self, 'CURIOUS') else DEFAULT
+                    # Slightly wider eyes for attention
+                    self.eyes_width(38, 38)
+                    self.eyes_height(35, 35)
+                    return True
+                except Exception as e:
+                    logger.warning(f"Basic request animation failed: {e}")
+            
+            # Default/neutral fallback
+            try:
+                self.mood = DEFAULT
+                self.eyes_width(36, 36)  # Default size
+                self.eyes_height(36, 36)
+                logger.debug("Applied neutral emotion fallback")
+                return True
+            except Exception as e:
+                logger.error(f"Even basic neutral animation failed: {e}")
+                return False
+                
+        except Exception as e:
+            logger.error(f"Critical error in basic emotion fallback: {e}")
+            return False
+    
+    def get_current_emotion(self) -> str:
+        """
+        Get the currently active emotion.
+        
+        Returns:
+            The name of the current emotion, or None if no emotion is active
+        """
+        if not hasattr(self, 'emotion_manager') or self.emotion_manager is None:
+            return None
+        
+        return self.emotion_manager.current_emotion
+    
+    def get_available_emotions(self) -> list:
+        """
+        Get a list of all available emotion categories.
+        
+        Returns:
+            List of emotion names that can be triggered, or empty list if emotion manager not available
+        """
+        if not hasattr(self, 'emotion_manager') or self.emotion_manager is None:
+            return []
+        
+        return self.emotion_manager.get_available_emotions()
+    
+    # Healthcare-appropriate animation sequences
+    
+    def idle_gentle(self):
+        """
+        Gentle idle animation for neutral emotional state.
+        
+        Creates a calm, reassuring animation appropriate for healthcare environments.
+        Features slow, gentle eye movements with occasional soft blinks.
+        """
+        seq = self.sequences.add("idle_gentle")
+        
+        # Start with eyes closed, then gently open
+        seq.step(0, lambda roboeyes: roboeyes.close())
+        seq.step(200, lambda roboeyes: roboeyes.open())
+        
+        # Gentle, slow eye movements - looking slightly left and right
+        seq.step(1000, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault - 5))
+        seq.step(1000, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        
+        seq.step(3000, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault + 5))
+        seq.step(3000, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        
+        # Return to center with a gentle blink
+        seq.step(5000, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        seq.step(5000, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        
+        seq.step(6000, lambda roboeyes: roboeyes.blink())
+        
+        # Slight downward gaze (restful, non-threatening)
+        seq.step(7000, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault + 3))
+        
+        seq.step(9000, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        
+        seq.start()
+    
+    def gentle_joy(self):
+        """
+        Gentle joy animation for happy patient emotions.
+        
+        Creates a warm, supportive expression that conveys happiness without being
+        overwhelming in a medical environment. Features subtle happy expressions
+        and gentle eye movements.
+        """
+        seq = self.sequences.add("gentle_joy")
+        
+        # Set happy mood with gentle transition
+        seq.step(0, lambda roboeyes: setattr(roboeyes, 'happy', True))
+        
+        # Gentle eye opening with slight upward curve (happy eyes)
+        seq.step(100, lambda roboeyes: roboeyes.open())
+        
+        # Subtle happy eye shape - slightly narrower height for "smiling eyes"
+        seq.step(300, lambda roboeyes: setattr(roboeyes, 'eyeLheightNext', roboeyes.eyeLheightDefault - 4))
+        seq.step(300, lambda roboeyes: setattr(roboeyes, 'eyeRheightNext', roboeyes.eyeRheightDefault - 4))
+        
+        # Gentle upward gaze (optimistic but not overwhelming)
+        seq.step(800, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault - 2))
+        
+        # Soft side-to-side movement (gentle acknowledgment)
+        seq.step(1500, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault - 3))
+        seq.step(2200, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault + 3))
+        seq.step(2900, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        
+        # Return to normal eye height gradually
+        seq.step(3200, lambda roboeyes: setattr(roboeyes, 'eyeLheightNext', roboeyes.eyeLheightDefault))
+        seq.step(3200, lambda roboeyes: setattr(roboeyes, 'eyeRheightNext', roboeyes.eyeRheightDefault))
+        
+        # Final gentle blink and return to center
+        seq.step(3800, lambda roboeyes: roboeyes.blink())
+        seq.step(4000, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        
+        seq.start()
+    
+    def alert_focused(self):
+        """
+        Alert focused animation for urgent patient states.
+        
+        Creates an attentive, focused expression that conveys alertness and readiness
+        to help without being alarming. Features wider eyes and direct gaze.
+        """
+        seq = self.sequences.add("alert_focused")
+        
+        # Quick, alert eye opening - wider than normal
+        seq.step(0, lambda roboeyes: roboeyes.open())
+        seq.step(100, lambda roboeyes: setattr(roboeyes, 'eyeLheightNext', roboeyes.eyeLheightDefault + 6))
+        seq.step(100, lambda roboeyes: setattr(roboeyes, 'eyeRheightNext', roboeyes.eyeRheightDefault + 6))
+        seq.step(100, lambda roboeyes: setattr(roboeyes, 'eyeLwidthNext', roboeyes.eyeLwidthDefault + 4))
+        seq.step(100, lambda roboeyes: setattr(roboeyes, 'eyeRwidthNext', roboeyes.eyeRwidthDefault + 4))
+        
+        # Direct, steady gaze - slightly forward and centered
+        seq.step(300, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        seq.step(300, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault - 1))
+        
+        # Subtle scanning movement - checking the situation
+        seq.step(1000, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault - 8))
+        seq.step(1500, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault + 8))
+        seq.step(2000, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        
+        # Brief focused blink (not a sleepy blink)
+        seq.step(2500, lambda roboeyes: roboeyes.close())
+        seq.step(2600, lambda roboeyes: roboeyes.open())
+        
+        # Return to alert, ready position
+        seq.step(2800, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        
+        # Maintain alert eye size for continued attention
+        seq.step(3000, lambda roboeyes: setattr(roboeyes, 'eyeLheightNext', roboeyes.eyeLheightDefault + 4))
+        seq.step(3000, lambda roboeyes: setattr(roboeyes, 'eyeRheightNext', roboeyes.eyeRheightDefault + 4))
+        
+        seq.start()
+    
+    def empathetic_support(self):
+        """
+        Empathetic support animation for concerned patients.
+        
+        Creates a gentle, understanding expression that conveys empathy and support.
+        Features soft, caring eye movements and a slightly tilted, compassionate gaze.
+        """
+        seq = self.sequences.add("empathetic_support")
+        
+        # Gentle opening with soft, caring expression
+        seq.step(0, lambda roboeyes: roboeyes.open())
+        
+        # Slightly softer eye shape (compassionate)
+        seq.step(200, lambda roboeyes: setattr(roboeyes, 'eyeLheightNext', roboeyes.eyeLheightDefault - 2))
+        seq.step(200, lambda roboeyes: setattr(roboeyes, 'eyeRheightNext', roboeyes.eyeRheightDefault - 2))
+        seq.step(200, lambda roboeyes: setattr(roboeyes, 'eyeLborderRadiusNext', roboeyes.eyeLborderRadiusDefault + 2))
+        seq.step(200, lambda roboeyes: setattr(roboeyes, 'eyeRborderRadiusNext', roboeyes.eyeRborderRadiusDefault + 2))
+        
+        # Gentle downward gaze (non-threatening, humble)
+        seq.step(600, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault + 4))
+        
+        # Slow, gentle side movement (showing attention and care)
+        seq.step(1200, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault - 4))
+        seq.step(2000, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        
+        # Soft blink (caring, not dismissive)
+        seq.step(2500, lambda roboeyes: roboeyes.blink())
+        
+        # Gentle upward movement (hopeful, supportive)
+        seq.step(3000, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault - 1))
+        
+        # Another caring side glance
+        seq.step(3800, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault + 3))
+        seq.step(4200, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        
+        # Return to gentle, centered position
+        seq.step(4600, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        seq.step(4600, lambda roboeyes: setattr(roboeyes, 'eyeLheightNext', roboeyes.eyeLheightDefault))
+        seq.step(4600, lambda roboeyes: setattr(roboeyes, 'eyeRheightNext', roboeyes.eyeRheightDefault))
+        
+        seq.start()
+    
+    def attentive_listening(self):
+        """
+        Attentive listening animation for patient requests.
+        
+        Creates an engaged, listening expression that shows the system is actively
+        paying attention to the patient's needs. Features focused gaze and subtle
+        acknowledgment movements.
+        """
+        seq = self.sequences.add("attentive_listening")
+        
+        # Alert, attentive opening
+        seq.step(0, lambda roboeyes: roboeyes.open())
+        
+        # Slightly wider eyes to show attention
+        seq.step(100, lambda roboeyes: setattr(roboeyes, 'eyeLheightNext', roboeyes.eyeLheightDefault + 3))
+        seq.step(100, lambda roboeyes: setattr(roboeyes, 'eyeRheightNext', roboeyes.eyeRheightDefault + 3))
+        
+        # Direct, focused gaze toward the patient
+        seq.step(300, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        seq.step(300, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        
+        # Subtle tracking movement (following the patient's voice/presence)
+        seq.step(800, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault - 2))
+        seq.step(1200, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault + 2))
+        seq.step(1600, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        
+        # Brief acknowledgment blink
+        seq.step(2000, lambda roboeyes: roboeyes.blink())
+        
+        # Slight forward lean (engaged posture)
+        seq.step(2300, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault - 2))
+        
+        # Another subtle tracking movement
+        seq.step(2600, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault + 1))
+        seq.step(2800, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault - 1))
+        seq.step(3000, lambda roboeyes: setattr(roboeyes, 'eyeLxNext', roboeyes.eyeLxDefault))
+        
+        # Return to attentive, ready position
+        seq.step(3200, lambda roboeyes: setattr(roboeyes, 'eyeLyNext', roboeyes.eyeLyDefault))
+        
+        seq.start()
     
     def draw_eyes(self):
         """

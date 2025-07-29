@@ -10,6 +10,12 @@ with your actual implementation.
 import pygame
 import time
 import random
+import sys
+import os
+
+# Add the src directory to the path
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
+
 from roboeyes.desktop_roboeyes import DesktopRoboEyes
 from roboeyes.emotion_animation import (
     EMOTION_HAPPY, EMOTION_NEUTRAL, EMOTION_URGENT, 
