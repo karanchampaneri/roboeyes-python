@@ -96,7 +96,7 @@ class PygameGraphicsUtil:
             logger.exception(error_msg)
             raise GraphicsError(error_msg)
     
-    def fill_triangle(self, x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, color: int) -> None:
+    def fill_triangle(self, x1: int, y1: int, x2: int, y2: int, x3: int, y3: int, color: int, suppress_warnings: bool = True) -> None:
         """
         Draw a filled triangle.
         
@@ -108,6 +108,7 @@ class PygameGraphicsUtil:
             x3: X coordinate of third vertex
             y3: Y coordinate of third vertex
             color: Color value (0 for black/background, 1 for white/foreground)
+            suppress_warnings: Whether to suppress warnings for degenerate triangles
             
         Raises:
             GraphicsError: If drawing operation fails
@@ -123,7 +124,8 @@ class PygameGraphicsUtil:
             
             # Validate that we have at least 3 distinct points
             if len(set(points)) < 3:
-                logger.warning(f"Triangle has duplicate vertices: {points}")
+                if not suppress_warnings:
+                    logger.warning(f"Triangle has duplicate vertices: {points}")
                 return
             
             # Track dirty rectangle for triangle bounding box

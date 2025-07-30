@@ -29,7 +29,7 @@ from desktop.exceptions import (
 from desktop.logging import get_logger
 
 # Import emotion animation system
-from roboeyes.emotion_animation import EmotionAnimationManager
+from roboeyes.emotion_animation_streamlined import EmotionAnimationManager
 
 # Import constants and random from standard library
 from random import randint
@@ -1140,7 +1140,7 @@ class DesktopRoboEyes:
         if not hasattr(self, 'emotion_manager') or self.emotion_manager is None:
             return None
         
-        return self.emotion_manager.current_emotion
+        return self.emotion_manager.get_current_emotion()
     
     def get_available_emotions(self) -> list:
         """

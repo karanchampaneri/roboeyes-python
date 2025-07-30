@@ -1,145 +1,159 @@
-# RoboEyes Desktop Examples
+# RoboEyes Examples - Team Integration Focus
 
-This directory contains example applications demonstrating various features of the RoboEyes Desktop library, perfect for AI assistant integration and interactive applications.
+This directory contains focused examples for team integration with the EmotionAnimationManager system. These examples demonstrate essential patterns for integrating emotion-driven eye animations with TTS systems and AI applications.
 
-### `desktop_basic.py`
-**Basic desktop functionality demonstration**
-- Shows how to initialize RoboEyes for desktop use
-- Demonstrates basic eye animations and automated behaviors
-- Good starting point for new users
-- Includes auto-blinker and idle mode setup
+## Core Team Examples
 
-**Usage:**
-```bash
-python examples/desktop_basic.py
-```
+### `simple_emotion_integration.py`
+**Essential starting point for new team members**
+- Minimal code needed for emotion animation integration
+- Shows basic EmotionAnimationManager usage patterns
+- Includes placeholder for your AI/ML emotion detection
+- Manual testing controls for development
+- Clear error handling that maintains animation continuity
 
-### `desktop_interactive.py`
-**Interactive demonstration with full keyboard/mouse controls**
-- Comprehensive showcase of all RoboEyes features
-- Interactive control using keyboard and mouse
-- Includes automatic demonstration mode
-- Shows real-time status updates
-
-**Key Features:**
-- Full keyboard control mapping
-- Mouse interaction (click to look, right-click to blink)
-- Auto-demo mode (press 'D')
-- Status display system
+**Perfect for:**
+- Team members new to the emotion animation system
+- Basic emotion-driven eye animations
+- Integration with AI/ML emotion detection models
+- Development and testing workflows
 
 **Usage:**
 ```bash
-python examples/desktop_interactive.py
+python examples/simple_emotion_integration.py
 ```
 
-### `desktop_animation_sequence.py`
-**Animation sequence system demonstration**
-- Shows how to create complex, timed animation sequences
-- Demonstrates the sequence-based animation system
-- Multiple pre-built sequences showcasing different features
-- Sequence control and management
+### `team_integration_guide.py`
+**Complete TTS integration template**
+- Shows how to coordinate EmotionAnimationManager with TTS systems
+- Thread-safe TTS and emotion coordination
+- Healthcare application examples
+- Proper error handling patterns
+- Best practices for emotion timing with speech
 
-**Key Features:**
-- 6 different animation sequences
-- Sequence control (start, stop, restart)
-- Automatic sequence progression
-- Demonstrates timing-based animations without delays
+**Perfect for:**
+- TTS system integration projects
+- Healthcare applications requiring empathetic interactions
+- Production-ready emotion coordination
+- Team development templates
 
 **Usage:**
 ```bash
-python examples/desktop_animation_sequence.py
+python examples/team_integration_guide.py
 ```
 
-### `desktop_config_demo.py`
-**Configuration and customization demonstration**
-- Shows different eye shapes and configurations
-- Demonstrates behavior presets
-- Eye shape customization options
-- Auto-cycling through configurations
+### `realtime_emotion_chaining_demo.py`
+**Real-time emotion chaining demonstration**
+- Shows seamless emotion transitions during pygame rendering
+- Demonstrates emotion chaining for TTS integration scenarios
+- Interactive demo with multiple emotion chain examples
+- Clear team integration patterns with detailed comments
 
-**Key Features:**
-- 8 eye shape presets (round, wide, narrow, etc.)
-- 7 behavior presets (calm, alert, sleepy, etc.)
-- Auto-cycle mode
-- Real-time configuration changes
+**Perfect for:**
+- Understanding real-time emotion transitions
+- Learning emotion chaining patterns
+- TTS coordination timing examples
+- Interactive demonstrations for team training
 
 **Usage:**
 ```bash
-python examples/desktop_config_demo.py
+python examples/realtime_emotion_chaining_demo.py
 ```
 
-### `ollama_integration_example.py`
-**Complete Ollama LLM integration example**
-- Shows how to connect RoboEyes with Ollama for AI assistant visual feedback
-- Eyes react to different conversation states (idle, thinking, responding, error)
-- Interactive chat interface with visual cues
-- Demonstrates mood changes based on AI processing states
+## Quick Start Guide
 
-**Key Features:**
-- Real-time visual feedback during AI conversations
-- Different eye expressions for different AI states
-- Conversation history management
-- Error handling with visual indicators
+### For New Team Members
+1. **Start with `simple_emotion_integration.py`** to understand basic usage
+2. **Explore `realtime_emotion_chaining_demo.py`** to see emotion transitions
+3. **Use `team_integration_guide.py`** as a template for TTS projects
 
-**Requirements:**
-```bash
-pip install requests
-# Ollama must be running: ollama serve
+### For TTS Integration Projects
+1. **Copy `team_integration_guide.py`** as your starting template
+2. **Replace the placeholder TTS function** with your actual TTS implementation
+3. **Customize the healthcare examples** for your specific use case
+4. **Test with `realtime_emotion_chaining_demo.py`** to understand timing
+
+### For AI/ML Integration
+1. **Start with `simple_emotion_integration.py`**
+2. **Replace `your_emotion_detection_function()`** with your AI/ML model
+3. **Adjust detection timing** based on your model's performance
+4. **Use error handling patterns** to maintain animation continuity
+
+## Available Emotions
+
+All examples use these five core emotions optimized for healthcare applications:
+
+- **`EMOTION_NEUTRAL`** - Calm, idle state (default)
+- **`EMOTION_HAPPY`** - Joy, satisfaction, positive responses
+- **`EMOTION_CONCERNED`** - Empathy, worry, supportive responses
+- **`EMOTION_URGENT`** - Alert, important information, attention needed
+- **`EMOTION_REQUEST`** - Listening, questions, information gathering
+
+## Integration Patterns
+
+### Basic Emotion Triggering
+```python
+# Initialize emotion manager
+emotion_manager = EmotionAnimationManager(roboeyes)
+
+# Trigger emotions based on context
+emotion_manager.trigger_emotion(EMOTION_HAPPY)  # For positive interactions
+emotion_manager.trigger_emotion(EMOTION_CONCERNED)  # For empathetic responses
 ```
 
-**Usage:**
-```bash
-python examples/ollama_integration_example.py
+### Real-time Updates (Critical)
+```python
+# In your main loop - call every frame for smooth transitions
+while running:
+    emotion_manager.update()  # Essential for real-time emotion chaining
+    roboeyes.update()         # Essential for animation rendering
 ```
 
-## AI Integration Examples
+### TTS Coordination
+```python
+# Coordinate emotions with speech timing
+coordinator.speak_with_emotion("Hello! How can I help?", EMOTION_HAPPY)
+coordinator.speak_with_emotion("I understand your concern", EMOTION_CONCERNED)
+```
 
-These examples show how to integrate RoboEyes with AI systems:
+## Error Handling Best Practices
 
-### For Ollama Integration
-- **`desktop_basic.py`** - Simple setup perfect for AI assistant backends
-- **`desktop_interactive.py`** - Interactive demo showing all available expressions
-- **`desktop_animation_sequence.py`** - Timed sequences for conversation flow
-
-### For Chatbot Integration
-- Use mood changes to reflect conversation context (happy, curious, tired)
-- Animation sequences for thinking, responding, and idle states
-- Interactive controls for real-time expression changes during conversations
-
-### Integration Tips
-- Use `CURIOUS` mood when the AI is processing a question
-- Use `HAPPY` mood for positive responses
-- Use `TIRED` mood for long processing tasks
-- Use animation sequences to show conversation flow states
-
-## Getting Started
-
-1. **For desktop use**, start with `desktop_basic.py` to understand the basics
-2. **For interactive exploration**, try `desktop_interactive.py`
-3. **For animation sequences**, explore `desktop_animation_sequence.py`
-4. **For customization**, check out `desktop_config_demo.py`
+All examples demonstrate error handling that:
+- **Never breaks the animation loop** - pygame rendering continues
+- **Provides clear error messages** - helps with debugging
+- **Falls back to neutral emotion** - maintains consistent state
+- **Logs errors appropriately** - for monitoring and debugging
 
 ## Requirements
 
-Desktop examples require:
+All examples require:
 - Python 3.7+
 - Pygame
-- The RoboEyes desktop library (in `src/` directory)
+- The streamlined EmotionAnimationManager (in `src/roboeyes/`)
 
 Install requirements:
 ```bash
 pip install pygame
 ```
 
-## Controls
+## Development Workflow
 
-All desktop examples support these common controls:
-- **H** or **F1**: Show/hide help overlay
-- **ESC**: Exit (or exit fullscreen)
-- **F11**: Toggle fullscreen
-- **Number keys 1-7**: Change moods
-- **Arrow keys**: Move eyes
-- **Space**: Blink
-- **Mouse**: Click to look at position, right-click to blink
+1. **Use manual testing controls** during development (number keys 1-5)
+2. **Monitor console output** for emotion triggers and errors
+3. **Test error scenarios** to ensure animation continuity
+4. **Remove manual controls** for production deployment
 
-See individual example documentation or press H in any example for specific controls.
+## Getting Started
+
+1. **For new team members**, start with `simple_emotion_integration.py` to understand the basics
+2. **For real-time emotion understanding**, explore `realtime_emotion_chaining_demo.py`
+3. **For TTS integration projects**, use `team_integration_guide.py` as your template
+
+## Common Controls
+
+All examples support these common controls:
+- **Number keys 1-5**: Trigger different emotions manually
+- **ESC**: Exit the application
+- **H** or **F1**: Show/hide help (where available)
+
+See individual example documentation for specific controls and usage patterns.

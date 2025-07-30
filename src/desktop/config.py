@@ -49,6 +49,7 @@ class RoboEyesConfig:
     # Application settings
     config_file: Optional[str] = None
     debug: bool = False
+    suppress_graphics_warnings: bool = True
 
 
 class ConfigManager:

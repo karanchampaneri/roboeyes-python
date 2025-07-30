@@ -1,25 +1,24 @@
 # RoboEyes Desktop
 
-**Animated robot eyes for desktop applications and AI assistants**
+**Emotion-driven animated robot eyes for TTS and AI assistant integration**
 
-RoboEyes Desktop provides charming animated robot eyes perfect for AI assistants, chatbots, and interactive desktop applications. Originally inspired by the [RoboEyes video from FluxGarage](https://www.youtube.com/playlist?list=PLD2oXF44y-hLKjw_es2Vw1ycwBRNZ6ceE), this desktop implementation is optimized for integration with local LLMs like Ollama.
+RoboEyes Desktop provides emotion-driven animated robot eyes perfect for healthcare applications, TTS systems, and AI assistants. The streamlined EmotionAnimationManager makes it easy for teams to integrate real-time emotion animations that respond to user interactions and coordinate seamlessly with text-to-speech playback.
 
 ![Credit: RoboEyes for Arduino by [FluxGarage.com](https://www.fluxgarage.com/index.php)](docs/_static/roboeyes-01.jpg)
 
-## Features
+## Key Features for Team Integration
 
-- **AI Assistant Integration** - Perfect for local LLMs like Ollama
-- **Cross-platform desktop support** - Windows, macOS, and Linux
-- **Interactive controls** - Keyboard and mouse input for real-time interaction
-- **Multiple eye moods** - DEFAULT, TIRED, ANGRY, HAPPY, FROZEN, SCARY, CURIOUS
-- **Smooth animations** - Blinking, winking, laughing, and position changes
-- **Configurable appearance** - Eye shapes, sizes, colors, and behaviors
-- **Performance optimized** - Efficient rendering with dirty rectangle updates
-- **Extensible API** - Easy to integrate into chatbots and AI applications
+- **EmotionAnimationManager** - Primary interface for emotion-driven animations
+- **Real-time emotion chaining** - Seamless transitions during TTS playback
+- **5 core emotions** - Happy, Neutral, Urgent, Concerned, Request
+- **TTS coordination** - Perfect timing with speech synthesis systems
+- **Error-safe design** - Never breaks animation continuity
+- **Simple API** - Easy integration with existing applications
+- **Healthcare-focused** - Designed for empathetic patient interactions
 
 ![Credit: RoboEyes moods by [FluxGarage.com](https://www.fluxgarage.com/index.php)](docs/_static/roboeyes-00.jpg)
 
-## Quick Start
+## Quick Start for Teams
 
 ### Installation
 
@@ -34,94 +33,149 @@ RoboEyes Desktop provides charming animated robot eyes perfect for AI assistants
    pip install -r requirements.txt
    ```
 
-3. **Run the basic example:**
+3. **Run the team integration example:**
    ```bash
-   python examples/desktop_basic.py
+   python examples/simple_emotion_integration.py
    ```
 
-4. **Try the interactive demo:**
+4. **Try the TTS coordination demo:**
    ```bash
-   python examples/desktop_interactive.py
+   python examples/team_integration_guide.py
    ```
 
-5. **Test Ollama integration (requires Ollama running):**
+5. **See real-time emotion chaining:**
    ```bash
-   pip install requests
-   python examples/ollama_integration_example.py
+   python examples/realtime_emotion_chaining_demo.py
    ```
 
-### Basic Usage
+### Basic EmotionAnimationManager Usage
 
 ```python
-from src.roboeyes.desktop_roboeyes import DesktopRoboEyes, ON
+from src.roboeyes.desktop_roboeyes import DesktopRoboEyes
+from src.roboeyes.emotion_animation_streamlined import (
+    EmotionAnimationManager, 
+    EMOTION_HAPPY, EMOTION_NEUTRAL, EMOTION_REQUEST
+)
 from src.desktop.config import RoboEyesConfig
 
-# Create configuration
+# Initialize RoboEyes
+config = RoboEyesConfig(window_width=800, window_height=600, frame_rate=30)
+roboeyes = DesktopRoboEyes(config)
+
+# Initialize emotion system (primary interface)
+emotion_manager = EmotionAnimationManager(roboeyes)
+
+# Trigger emotions for TTS coordination
+emotion_manager.trigger_emotion(EMOTION_HAPPY)    # Greeting
+emotion_manager.trigger_emotion(EMOTION_REQUEST)  # Asking question
+emotion_manager.trigger_emotion(EMOTION_NEUTRAL)  # Return to idle
+
+# CRITICAL: Call update() every frame in your main loop
+while roboeyes.running:
+    emotion_manager.update()  # Enables smooth transitions
+    roboeyes.update()         # Updates animations
+    roboeyes.clock.tick(30)   # Control frame rate
+```
+
+## Core Emotions for Team Integration
+
+The EmotionAnimationManager provides 5 essential emotions designed for healthcare and TTS applications:
+
+### Available Emotions
+
+- **EMOTION_NEUTRAL** - Default calm state, ideal for idle/waiting
+- **EMOTION_HAPPY** - Positive interactions, greetings, good news
+- **EMOTION_REQUEST** - Asking questions, active listening mode
+- **EMOTION_CONCERNED** - Showing empathy, acknowledging problems
+- **EMOTION_URGENT** - Important information, alerts, attention needed
+
+### TTS Integration Example
+
+```python
+# Coordinate emotions with speech timing
+emotion_manager.trigger_emotion(EMOTION_HAPPY)
+tts_engine.speak("Hello! Welcome to our healthcare system.")
+
+emotion_manager.trigger_emotion(EMOTION_REQUEST)  
+tts_engine.speak("How can I help you today?")
+
+emotion_manager.trigger_emotion(EMOTION_CONCERNED)
+tts_engine.speak("I understand your concern. Let me help.")
+
+emotion_manager.trigger_emotion(EMOTION_NEUTRAL)
+# Return to neutral after interaction
+```
+
+## Team Integration Examples
+
+The `examples/` directory contains focused examples for team integration:
+
+- **`simple_emotion_integration.py`** - Basic emotion integration template
+- **`team_integration_guide.py`** - Complete TTS coordination example
+- **`realtime_emotion_chaining_demo.py`** - Real-time emotion transitions
+
+### Key Integration Patterns
+
+```python
+# 1. Initialize emotion system
+emotion_manager = EmotionAnimationManager(roboeyes_instance)
+
+# 2. Get available emotions
+available = emotion_manager.get_available_emotions()
+# Returns: ['happy', 'neutral', 'urgent', 'concerned', 'request']
+
+# 3. Trigger emotions safely
+success = emotion_manager.trigger_emotion('happy')
+if not success:
+    # Fallback handling - animation continues smoothly
+    emotion_manager.trigger_emotion('neutral')
+
+# 4. Check current state
+current = emotion_manager.get_current_emotion()
+is_active = emotion_manager.is_emotion_active('happy')
+
+# 5. CRITICAL: Update every frame for smooth transitions
+while running:
+    emotion_manager.update()  # Essential for real-time chaining
+    roboeyes.update()
+    clock.tick(30)
+```
+
+## Simple Configuration
+
+EmotionAnimationManager uses simple dictionary-based configuration:
+
+```python
+# Use default emotions (recommended for most teams)
+emotion_manager = EmotionAnimationManager(roboeyes_instance)
+
+# Or customize emotions with dictionary configuration
+from src.roboeyes.emotion_animation_streamlined import EmotionConfig
+
+custom_emotions = {
+    'happy': EmotionConfig(sequence_name='gentle_joy', duration_ms=4000),
+    'neutral': EmotionConfig(sequence_name='idle_gentle', duration_ms=None),
+    'urgent': EmotionConfig(sequence_name='alert_focused', duration_ms=None)
+}
+
+emotion_manager = EmotionAnimationManager(roboeyes_instance, custom_emotions)
+```
+
+### RoboEyes Configuration
+
+```python
+from src.desktop.config import RoboEyesConfig
+
+# Recommended settings for team integration
 config = RoboEyesConfig(
+    display_width=128,
+    display_height=64,
     window_width=800,
     window_height=600,
-    frame_rate=60
+    frame_rate=30,        # 30 FPS for smooth emotion transitions
+    auto_blinker=True     # Maintain natural blinking
 )
-
-# Initialize RoboEyes
-robo = DesktopRoboEyes(config=config)
-
-# Enable automatic behaviors
-robo.set_auto_blinker(ON, 3, 2)  # Auto-blink every 3±2 seconds
-robo.set_idle_mode(ON, 2, 2)     # Auto-move every 2±2 seconds
-
-# Run the application
-robo.run()
 ```
-
-## Interactive Controls
-
-### Keyboard Controls
-- **1-7**: Change moods (Default, Tired, Angry, Happy, Frozen, Scary, Curious)
-- **Arrow Keys**: Move eyes in 4 directions
-- **WASD**: Alternative movement controls
-- **Space**: Blink both eyes
-- **Q/E**: Wink left/right eye
-- **C**: Confuse animation
-- **L**: Laugh animation
-- **B**: Toggle auto-blinker
-- **I**: Toggle idle mode
-- **H/F1**: Show/hide help
-- **F11**: Toggle fullscreen
-- **ESC**: Exit fullscreen
-
-### Mouse Controls
-- **Left Click**: Make eyes look at clicked position
-- **Right Click**: Trigger blink animation
-
-## Examples
-
-The `examples/` directory contains several demonstration applications:
-
-- **`desktop_basic.py`** - Simple setup with automated behaviors
-- **`desktop_interactive.py`** - Full interactive demo with all controls
-- **`desktop_animation_sequence.py`** - Demonstrates animation sequences
-- **`desktop_config_demo.py`** - Shows different eye configurations
-
-## Configuration
-
-RoboEyes Desktop supports both configuration files and command-line arguments:
-
-```bash
-# Use custom window size
-python -m src.roboeyes.desktop_roboeyes --window-width 1024 --window-height 768
-
-# Enable fullscreen mode
-python -m src.roboeyes.desktop_roboeyes --fullscreen
-
-# Save current settings
-python -m src.roboeyes.desktop_roboeyes --save-config
-```
-
-Configuration files are automatically created in platform-appropriate locations:
-- **Windows**: `%APPDATA%\RoboEyes\roboeyes_config.json`
-- **macOS**: `~/Library/Application Support/RoboEyes/roboeyes_config.json`
-- **Linux**: `~/.config/roboeyes/roboeyes_config.json`
 
 ## System Requirements
 
@@ -151,203 +205,189 @@ python -m src.roboeyes.desktop_roboeyes
 
 For detailed platform-specific installation instructions, see [INSTALL.md](INSTALL.md).
 
-## API Documentation
+## EmotionAnimationManager API
 
-### Core Classes
-
-#### DesktopRoboEyes
-The main class for desktop RoboEyes applications.
+### Core Methods
 
 ```python
-from src.roboeyes.desktop_roboeyes import DesktopRoboEyes
-from src.desktop.config import RoboEyesConfig
+from src.roboeyes.emotion_animation_streamlined import EmotionAnimationManager
 
-# Create with configuration
-config = RoboEyesConfig(window_width=800, window_height=600)
-robo = DesktopRoboEyes(config=config)
-
-# Or create with direct parameters
-robo = DesktopRoboEyes(
-    width=128, height=64,
-    window_width=800, window_height=600,
-    frame_rate=60
-)
+# Initialize with RoboEyes instance
+emotion_manager = EmotionAnimationManager(roboeyes_instance)
 ```
 
-#### Key Methods
+#### Primary Interface Methods
 
 ```python
-# Animation control
-robo.set_auto_blinker(ON, interval=3, variation=2)
-robo.set_idle_mode(ON, interval=2, variation=2)
+# Trigger emotion animation (primary API)
+success = emotion_manager.trigger_emotion('happy')
+# Returns: True if successful, False otherwise
 
-# Eye appearance
-robo.eyes_width(left=36, right=36)
-robo.eyes_height(left=36, right=36)
-robo.eyes_radius(left=8, right=8)
-robo.eyes_spacing(10)
+# Update animation state (call every frame)
+emotion_manager.update()
+# Essential for smooth transitions and timing
 
-# Mood and position
-robo.mood = HAPPY
-robo.position = NE
-robo.cyclops = True
+# Get available emotions
+emotions = emotion_manager.get_available_emotions()
+# Returns: ['happy', 'neutral', 'urgent', 'concerned', 'request']
 
-# Manual animations
-robo.blink()
-robo.wink(left=True)
-robo.laugh()
-robo.confuse()
+# Check current emotion state
+current = emotion_manager.get_current_emotion()
+# Returns: Current emotion name or None
 
-# Window management
-robo.toggle_fullscreen()
-robo.set_window_size(1024, 768)
+is_active = emotion_manager.is_emotion_active('happy')
+# Returns: True if specified emotion is active
 ```
 
-#### Configuration
+### Error Handling
+
+The EmotionAnimationManager is designed to never break your application:
 
 ```python
-from src.desktop.config import RoboEyesConfig, ConfigManager
+# Invalid emotions fallback to neutral automatically
+emotion_manager.trigger_emotion('invalid_emotion')  # Returns False, uses neutral
 
-# Create configuration
-config = RoboEyesConfig(
-    window_width=800,
-    window_height=600,
-    display_width=128,
-    display_height=64,
-    frame_rate=60,
-    auto_blinker=True,
-    idle_mode=True
-)
+# Exceptions are caught and logged, animation continues
+try:
+    emotion_manager.trigger_emotion('happy')
+except Exception:
+    pass  # Won't happen - errors are handled internally
 
-# Load/save configuration
-manager = ConfigManager()
-config = manager.load_config("my_config.json")
-manager.save_config(config, "my_config.json")
+# Always safe to call in main loop
+while running:
+    emotion_manager.update()  # Never throws exceptions
+    roboeyes.update()
 ```
 
-### Animation Sequences
-
-Create complex animation sequences with precise timing:
+### Integration with TTS Systems
 
 ```python
-# Create a sequence
-seq = robo.sequences.add("demo")
-seq.step(1000, lambda r: r.open())
-seq.step(2000, lambda r: r.set_mood(HAPPY))
-seq.step(3000, lambda r: r.laugh())
-seq.step(4000, lambda r: r.set_mood(DEFAULT))
+# Coordinate emotions with TTS timing
+def speak_with_emotion(text, emotion):
+    emotion_manager.trigger_emotion(emotion)
+    your_tts_engine.speak(text)
+    # Emotion transitions happen automatically via update() calls
 
-# Start the sequence
-seq.start()
+# Example healthcare interaction
+speak_with_emotion("Hello! How can I help you?", EMOTION_HAPPY)
+speak_with_emotion("I understand your concern.", EMOTION_CONCERNED)
+speak_with_emotion("This is important information.", EMOTION_URGENT)
 ```
 
-### Input Handling
+## Troubleshooting Team Integration
 
-Extend the input system with custom controls:
+### Common Integration Issues
+
+**EmotionAnimationManager not responding:**
+- Ensure `emotion_manager.update()` is called every frame in your main loop
+- Check that RoboEyes instance is properly initialized
+- Verify emotion names match the available emotions exactly
+
+**Emotions not transitioning smoothly:**
+- Confirm `update()` is called at consistent intervals (30 FPS recommended)
+- Check that your main loop isn't blocked by long-running operations
+- Ensure TTS timing doesn't interfere with animation updates
+
+**TTS and emotion coordination issues:**
+- Use the TTSEmotionCoordinator from `team_integration_guide.py`
+- Don't trigger emotions faster than the animation system can process
+- Allow emotions to complete their transitions before triggering new ones
+
+### Error Handling Best Practices
 
 ```python
-# Add custom key mapping
-robo.input_manager.add_key_mapping(
-    pygame.K_m, 
-    lambda r: r.set_mood(HAPPY)
-)
-
-# Add custom mouse mapping
-robo.input_manager.add_mouse_mapping(
-    "middle_click",
-    lambda r, pos: r.confuse()
-)
+# Always handle emotion triggering safely
+try:
+    success = emotion_manager.trigger_emotion('happy')
+    if not success:
+        # Fallback to neutral - animation continues smoothly
+        emotion_manager.trigger_emotion('neutral')
+except Exception as e:
+    # Log error but don't break animation loop
+    logger.error(f"Emotion error: {e}")
+    # System continues running normally
 ```
 
-## Troubleshooting
+### Performance Optimization
 
-### Common Issues
+- **Frame Rate**: Use 30 FPS for smooth emotions without excessive CPU usage
+- **Update Frequency**: Call `emotion_manager.update()` every frame, not faster
+- **TTS Coordination**: Don't trigger emotions more than once per second
+- **Error Recovery**: Let the system handle errors automatically
 
-**Application won't start:**
-- Ensure Python 3.8+ is installed
-- Install Pygame: `pip install pygame`
-- Check graphics drivers are up to date
+## Healthcare and TTS Integration
 
-**Poor performance:**
-- Lower frame rate: `--frame-rate 30`
-- Reduce window size: `--window-width 640 --window-height 480`
-- Close other graphics-intensive applications
+RoboEyes Desktop is optimized for healthcare applications and TTS systems:
 
-**Display issues:**
-- Try different scaling: `--scale-factor 2.0`
-- Toggle fullscreen: Press F11
-- Check display resolution compatibility
-
-**Input not working:**
-- Ensure window has focus
-- Check keyboard layout (US layout recommended)
-- Try mouse controls if keyboard fails
-
-### Platform-Specific Issues
-
-**Windows:**
-- Install Visual C++ Redistributable if Pygame fails to install
-- Add Windows Defender exception if needed
-- Run as Administrator if permission errors occur
-
-**macOS:**
-- Install Xcode Command Line Tools: `xcode-select --install`
-- Use Homebrew Python: `brew install python`
-- Grant accessibility permissions if input fails
-
-**Linux:**
-- Install development packages: `sudo apt install python3-dev libsdl2-dev`
-- Add user to audio/video groups for hardware access
-- Try X11 if Wayland has issues: `export GDK_BACKEND=x11`
-
-### Getting Help
-
-- **Documentation**: Check the `docs/` directory for detailed guides
-- **Examples**: Run examples in the `examples/` directory
-- **Logs**: Check platform-specific log locations for error details
-- **Issues**: Report bugs on the project's issue tracker
-
-## AI Integration Examples
-
-RoboEyes Desktop is designed to work seamlessly with AI assistants and chatbots:
-
-### Ollama Integration
-Perfect for adding visual feedback to local LLM interactions:
+### Healthcare Interaction Patterns
 
 ```python
-from examples.ollama_integration_example import OllamaRoboEyes
+# Greeting sequence
+emotion_manager.trigger_emotion(EMOTION_HAPPY)
+tts.speak("Hello! Welcome to our healthcare system.")
 
-# Create AI assistant with visual feedback
-assistant = OllamaRoboEyes(model="llama2")
-assistant.run_chat()  # Interactive chat with eye animations
+# Information gathering
+emotion_manager.trigger_emotion(EMOTION_REQUEST)
+tts.speak("Could you tell me about your symptoms?")
+
+# Showing empathy
+emotion_manager.trigger_emotion(EMOTION_CONCERNED)
+tts.speak("I understand this must be concerning for you.")
+
+# Urgent information
+emotion_manager.trigger_emotion(EMOTION_URGENT)
+tts.speak("This is important information about your medication.")
+
+# Return to neutral
+emotion_manager.trigger_emotion(EMOTION_NEUTRAL)
 ```
 
-**Visual States:**
-- **Idle**: Default mood with gentle blinking
-- **Thinking**: Curious mood with eye movement during processing
-- **Responding**: Happy mood while generating response
-- **Error**: Angry mood with confusion animation for errors
+### Real-time Emotion Chaining
 
-### Custom AI Integration
-Easy to integrate with any Python-based AI system:
+Perfect for coordinating with TTS playback timing:
 
 ```python
-# Basic integration pattern
-robo.mood = CURIOUS      # AI is thinking
-robo.mood = HAPPY        # AI is responding
-robo.mood = DEFAULT      # AI is idle
-robo.confuse()          # Show confusion for errors
+# Emotions chain seamlessly during speech
+emotion_manager.trigger_emotion(EMOTION_HAPPY)    # Start positive
+# TTS: "Hello! I'm here to help..."
+emotion_manager.trigger_emotion(EMOTION_REQUEST)  # Transition to listening
+# TTS: "How can I assist you today?"
+emotion_manager.trigger_emotion(EMOTION_NEUTRAL)  # Return to idle
+
+# The update() method handles smooth transitions automatically
+while running:
+    emotion_manager.update()  # Enables seamless chaining
+    roboeyes.update()
+    clock.tick(30)
 ```
 
-## Documentation
+## Documentation for Teams
 
-Comprehensive documentation is available in the `docs/` directory:
+Essential documentation for team integration:
 
 - **[Installation Guide](INSTALL.md)** - Platform-specific installation instructions
-- **[API Documentation](docs/API_DOCUMENTATION.md)** - Complete API reference for developers and AI integration
-- **[Input Controls](docs/INPUT_CONTROLS.md)** - Detailed keyboard and mouse controls
-- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Solutions for common issues
-- **[Performance Optimization](docs/PERFORMANCE_OPTIMIZATION.md)** - Performance tuning guide
+- **[Team Integration Guide](docs/team_integration_guide.md)** - Complete TTS integration patterns
+- **[EmotionAnimationManager API](docs/emotion_api_documentation.md)** - Core API reference
+- **[Healthcare Examples](examples/)** - Real-world integration examples
+- **[Troubleshooting](docs/TROUBLESHOOTING.md)** - Common integration issues
+
+### Quick Reference
+
+```python
+# Essential imports
+from src.roboeyes.emotion_animation_streamlined import (
+    EmotionAnimationManager,
+    EMOTION_HAPPY, EMOTION_NEUTRAL, EMOTION_URGENT, 
+    EMOTION_CONCERNED, EMOTION_REQUEST
+)
+
+# Core pattern for all team integrations
+emotion_manager = EmotionAnimationManager(roboeyes_instance)
+while running:
+    emotion_manager.update()  # CRITICAL: Call every frame
+    roboeyes.update()
+    clock.tick(30)
+```
 
 ## Contributing
 

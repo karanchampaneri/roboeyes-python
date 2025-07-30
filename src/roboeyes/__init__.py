@@ -3,8 +3,9 @@ Core RoboEyes functionality.
 """
 
 from .desktop_roboeyes import DesktopRoboEyes
-from .emotion_animation import (
-    AnimationConfig,
+from .emotion_animation_streamlined import (
+    EmotionAnimationManager,
+    EmotionConfig,
     EMOTION_HAPPY,
     EMOTION_NEUTRAL,
     EMOTION_URGENT,
@@ -12,15 +13,13 @@ from .emotion_animation import (
     EMOTION_REQUEST,
     VALID_EMOTIONS,
     DEFAULT_EMOTION,
-    validate_animation_config,
-    validate_emotion_name,
-    validate_emotion_mapping,
-    get_default_emotion_mapping
+    get_default_emotion_configs
 )
 
 __all__ = [
     'DesktopRoboEyes',
-    'AnimationConfig',
+    'EmotionAnimationManager',
+    'EmotionConfig',
     'EMOTION_HAPPY',
     'EMOTION_NEUTRAL',
     'EMOTION_URGENT',
@@ -28,8 +27,5 @@ __all__ = [
     'EMOTION_REQUEST',
     'VALID_EMOTIONS',
     'DEFAULT_EMOTION',
-    'validate_animation_config',
-    'validate_emotion_name',
-    'validate_emotion_mapping',
-    'get_default_emotion_mapping'
+    'get_default_emotion_configs'
 ]
